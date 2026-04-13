@@ -1,24 +1,24 @@
-# CSV Processing Bots
+# Excel Processing Bots
 
-Проект переделан под обработку **CSV-файлов** через ботов:
+Проект обрабатывает **Excel-файлы** через ботов:
 
-- `main_processor.py` — основной скрипт очистки CSV;
+- `main_processor.py` — основной скрипт очистки Excel;
 - `telegram_bot_worker.py` — бот Telegram;
 - `max_bot_worker.py` — бот MAX;
 - `vk_bot_worker.py` — бот группы VK.
 
 ## Принцип работы
 
-1. Пользователь отправляет `.csv` файл в бот.
-2. Скрипт соответствующего мессенджера скачивает файл локально в `data/`.
-3. Вызывается `main_processor.py` (через функцию `process_csv`).
-4. Основной скрипт нормализует данные:
+1. Пользователь отправляет `.xlsx/.xls` файл в бот.
+2. Скрипт мессенджера скачивает файл локально в `data/`.
+3. Вызывается `main_processor.py` (через функцию `process_excel_to_workbook`).
+4. Основной скрипт выполняет обработку 5 листов:
    - телефоны -> `79991112233`
    - даты -> `YYYY-MM-DD`
    - суммы -> `float`
    - статусы -> `completed` / `in_progress` / `cancelled`
-5. Удаляются полные дубликаты.
-6. Готовый CSV отправляется обратно в тот же мессенджер.
+5. Формируется итоговый `.xlsx` с 5 листами.
+6. Готовый Excel отправляется обратно в тот же мессенджер.
 
 ## Общий `.env`
 
@@ -32,7 +32,7 @@
    - активация: `.venv\\Scripts\\Activate.ps1`
 2. Установить зависимости: `pip install -r requirements.txt`
 3. Скопировать шаблон: `copy .env.example .env`
-4. Заполнить токены и идентификаторы в `.env`.
+4. Заполнить токены в `.env`.
 5. Запустить нужный воркер:
    - `python telegram_bot_worker.py`
    - `python max_bot_worker.py`
@@ -40,13 +40,7 @@
 
 ## Переменные окружения
 
-- `WORK_DIR` — локальная папка для входных/выходных CSV (по умолчанию `data`)
-- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
-- `MAX_API_BASE_URL`, `MAX_BOT_TOKEN`, `MAX_CHAT_ID`
+- `WORK_DIR` — локальная папка для временных файлов (по умолчанию `data`)
+- `TELEGRAM_BOT_TOKEN`
+- `MAX_BOT_TOKEN`
 - `VK_GROUP_TOKEN`, `VK_GROUP_ID`, `VK_API_VERSION`
-
-## Ручной запуск основного обработчика
-
-```bash
-python main_processor.py --input data/input.csv --output data/output.csv
-```
