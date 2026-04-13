@@ -38,9 +38,22 @@
    - `python max_bot_worker.py`
    - `python vk_bot_worker.py`
 
+## Имена файлов в ответе
+
+- Telegram: `Ответ в Телеграмм.xlsx`
+- MAX: `Ответ в MAX.xlsx`
+- VK: `Ответ в ВК.xlsx`
+
 ## Переменные окружения
 
 - `WORK_DIR` — локальная папка для временных файлов (по умолчанию `data`)
 - `TELEGRAM_BOT_TOKEN`
 - `MAX_BOT_TOKEN`
 - `VK_GROUP_TOKEN`, `VK_GROUP_ID`, `VK_API_VERSION`
+
+## Важно для VK
+
+Для работы воркера VK в ключе сообщества должны быть включены права:
+- сообщения сообщества;
+- документы сообщества;
+- управление сообществом (для Long Poll API).

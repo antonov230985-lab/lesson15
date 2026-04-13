@@ -1,8 +1,10 @@
 import os
 import time
+from collections import deque
 from pathlib import Path
 
 import requests
+from requests import exceptions as req_exc
 from dotenv import load_dotenv
 
 from main_processor import process_excel_to_workbook
@@ -67,22 +69,45 @@ def run() -> None:
 
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     offset = 0
+    recent_update_ids: deque[int] = deque()
+    recent_update_ids_set: set[int] = set()
     print("Telegram worker запущен.")
 
     while True:
-        resp = requests.get(
-            tg_api_url("getUpdates"),
-            params={"timeout": 30, "offset": offset},
-            timeout=40,
-        )
-        resp.raise_for_status()
-        data = resp.json()
+        try:
+            resp = requests.get(
+                tg_api_url("getUpdates"),
+                params={"timeout": 30, "offset": offset},
+                timeout=40,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except (req_exc.Timeout, req_exc.ConnectionError) as exc:
+            print(f"Сетевая ошибка Telegram getUpdates: {exc}")
+            time.sleep(2)
+            continue
+        except req_exc.RequestException as exc:
+            print(f"Ошибка Telegram getUpdates: {exc}")
+            time.sleep(2)
+            continue
+
         if not data.get("ok"):
             time.sleep(2)
             continue
 
         for update in data.get("result", []):
-            offset = update["update_id"] + 1
+            update_id = int(update.get("update_id", 0))
+            if update_id:
+                offset = max(offset, update_id + 1)
+            if update_id in recent_update_ids_set:
+                continue
+            if len(recent_update_ids) >= 300:
+                oldest = recent_update_ids.popleft()
+                recent_update_ids_set.discard(oldest)
+            if update_id:
+                recent_update_ids.append(update_id)
+                recent_update_ids_set.add(update_id)
+
             message = update.get("message", {})
             chat_id = message.get("chat", {}).get("id")
             document = message.get("document")
